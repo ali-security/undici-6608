@@ -237,6 +237,17 @@ test('Issue#2465', async (t) => {
   t.assert.strictEqual(await response.text(), '[object SharedArrayBuffer]')
 })
 
+test('constructing Response with global FormData body', async (t) => {
+  const form = new globalThis.FormData()
+  form.set('key', 'value')
+
+  const response = new Response(form)
+  const contentType = response.headers.get('content-type').split('=')
+
+  t.assert.strictEqual(contentType[0], 'multipart/form-data; boundary')
+  t.assert.ok((await response.text()).startsWith(`--${contentType[1]}`))
+})
+
 describe('Check the Content-Type of invalid formData', () => {
   test('_application/x-www-form-urlencoded', async (t) => {
     t.plan(1)

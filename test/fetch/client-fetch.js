@@ -510,6 +510,28 @@ test('post FormData with Blob', (t, done) => {
   })
 })
 
+test('post global FormData', (t, done) => {
+  t.plan(2)
+
+  const body = new globalThis.FormData()
+  body.append('field1', 'asd1')
+
+  const server = createServer({ joinDuplicateHeaders: true }, (req, res) => {
+    t.assert.ok(req.headers['content-type']?.startsWith('multipart/form-data; boundary='))
+    req.pipe(res)
+  })
+  t.after(closeServerAsPromise(server))
+
+  server.listen(0, async () => {
+    const res = await fetch(`http://localhost:${server.address().port}`, {
+      method: 'PUT',
+      body
+    })
+    t.assert.ok(/asd1/.test(await res.text()))
+    done()
+  })
+})
+
 test('post FormData with File', (t, done) => {
   t.plan(2)
 

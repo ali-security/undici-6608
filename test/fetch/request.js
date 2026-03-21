@@ -301,6 +301,20 @@ test('URLSearchParams body with Headers object - issue #1407', async (t) => {
   t.assert.strictEqual(await request.text(), 'abc=123')
 })
 
+test('constructing Request with global FormData body', async (t) => {
+  const form = new globalThis.FormData()
+  form.set('key', 'value')
+
+  const req = new Request('http://asd', {
+    method: 'POST',
+    body: form
+  })
+
+  const contentType = req.headers.get('content-type').split('=')
+  t.assert.strictEqual(contentType[0], 'multipart/form-data; boundary')
+  t.assert.ok((await req.text()).startsWith(`--${contentType[1]}`))
+})
+
 test('post aborted signal cloned', (t) => {
   t.plan(2)
 
